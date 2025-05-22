@@ -26,18 +26,49 @@ describe('./restaurant endpoint', () => {
         expect(mscn.name).toBe(JSON.parse(response.text).name);
     })
 
+    // test("Testing if can add new restaurants", async () => {
+    //     const response = await request(app).post("/restaurants/burgermania/manhattan/burgers");
+    //     expect(response.statusCode).toBe(200);
+    //     expect((await Restaurant.findOne({ where : {
+    //         name: "burgermania"
+    //     }})).name).toBe(JSON.parse(response.text).name);
+    // })
+
     test("Testing if can add new restaurants", async () => {
-        const response = await request(app).post("/restaurants/burgermania/manhattan/burgers");
+        const response = await request(app)
+            .post("/restaurants")
+            .send({ name: "burgermania", location: "manhattan", cuisine: "burgers"});
         expect(response.statusCode).toBe(200);
         expect((await Restaurant.findOne({ where : {
             name: "burgermania"
         }})).name).toBe(JSON.parse(response.text).name);
     })
-
+    
     test("Testing if post can change an entry", async () => {
-        const response = await request(app).put("/restaurants/1/samis/queens/afghani");
+        const response = await request(app)
+            .put("/restaurants/1")
+            .send({ name: "samis", location: "queens", cuisine: "afghani"});
         expect(response.statusCode).toBe(200);
         expect((await Restaurant.findByPk(1)).name).toBe("samis");
+    })
+
+    test("Testing serverside validation for posting an entry", async () => {
+        const response = await request(app)
+            .post("/restaurants")
+            .send({ name: "", location: "asdf", cuisine: "asdf"});
+        expect(response.statusCode).toBe(200);
+        console.log(response.text);
+        const responseData = JSON.parse(response.text);
+        console.log(responseData);
+        expect(responseData.errors).toEqual([
+            {
+                location: "body",
+                msg: "Invalid value",
+                path: "name",
+                type: "field",
+                value: "",
+            },
+        ]);
     })
 
     test("Testing if can delete something from database", async () => {
@@ -47,9 +78,6 @@ describe('./restaurant endpoint', () => {
     })
     
     
-
-
-
-
+    
     
 })
